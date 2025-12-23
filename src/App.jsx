@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import MapView from './components/MapView.jsx';
 import AnalysisPanel from './components/AnalysisPanel.jsx';
 import ScoreCard from './components/ScoreCard.jsx';
+import './App.css';
 import {
   toPointFeatures,
   createBufferFromLatLon,
@@ -23,6 +24,7 @@ import roadsData from './data/roads.json';
 export default function App() {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [bufferPolygon, setBufferPolygon] = useState(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [analysis, setAnalysis] = useState({
     competitorCount: 0,
     activityCount: 0,
@@ -43,6 +45,7 @@ export default function App() {
 
   const handleMapClick = (lat, lon) => {
     setSelectedLocation({ lat, lon });
+    setIsPanelOpen(true);
 
     const buffer = createBufferFromLatLon(lat, lon, 300);
     setBufferPolygon(buffer);
@@ -75,9 +78,32 @@ export default function App() {
     });
   };
 
+  const togglePanel = () => {
+    setIsPanelOpen(!isPanelOpen);
+  };
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px', height: '100vh', padding: '12px', boxSizing: 'border-box' }}>
-      <div style={{ border: '1px solid #ddd', borderRadius: 8, overflow: 'hidden' }}>
+    <div className="app-container">
+      <div className="map-container">
+        <button
+          className="toggle-btn"
+          onClick={togglePanel}
+          title={isPanelOpen ? "Hide Analysis" : "Show Analysis"}
+        >
+          {/* Simple Icon: Graph if closed, Close/Arrow if open */}
+          {isPanelOpen ? (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          ) : (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+          )}
+        </button>
         <MapView
           activities={activitiesData}
           competitors={competitorsData}
@@ -87,23 +113,26 @@ export default function App() {
           onMapClick={handleMapClick}
         />
       </div>
-      <div style={{ display: 'grid', gridTemplateRows: '1fr auto', gap: '16px' }}>
-        <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12 }}>
-          <AnalysisPanel
-            competitorCount={analysis.competitorCount}
-            activityCount={analysis.activityCount}
-            highestRoadClass={analysis.highestRoadClass}
-          />
-        </div>
-        <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12 }}>
-          <ScoreCard
-            competitorScore={scores.competitorScore}
-            activityScore={scores.activityScore}
-            roadScore={scores.roadScore}
-            finalScore={scores.finalScore}
-            normalized={scores.normalized}
-            classification={scores.classification}
-          />
+      
+      <div className={`sidebar ${isPanelOpen ? 'open' : 'closed'}`}>
+        <div className="sidebar-content">
+          <div className="panel-card">
+            <AnalysisPanel
+              competitorCount={analysis.competitorCount}
+              activityCount={analysis.activityCount}
+              highestRoadClass={analysis.highestRoadClass}
+            />
+          </div>
+          <div className="panel-card">
+            <ScoreCard
+              competitorScore={scores.competitorScore}
+              activityScore={scores.activityScore}
+              roadScore={scores.roadScore}
+              finalScore={scores.finalScore}
+              normalized={scores.normalized}
+              classification={scores.classification}
+            />
+          </div>
         </div>
       </div>
     </div>
